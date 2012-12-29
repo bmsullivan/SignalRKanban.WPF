@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Microsoft.AspNet.SignalR.Client.Hubs;
 
 namespace SignalRKanban.WPF
@@ -42,6 +43,13 @@ namespace SignalRKanban.WPF
         {
             _conn = new HubConnection("http://localhost:62883");
             _proxy = _conn.CreateHubProxy("KanbanHub");
+
+            _proxy.On("cardCreated", result => Dispatcher.Invoke(DispatcherPriority.Normal, new Action<dynamic>(data =>
+                {
+                    var lane = Lanes.Single(l => l.ID == (string)data.Lane);
+                    lane.Cards.Add(new Card {ID = data.ID, Content = data.Content, Lane = lane});
+                }), result));
+
             _conn.Start().Wait();
         }
     }
