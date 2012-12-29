@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.AspNet.SignalR.Client.Hubs;
 
 namespace SignalRKanban.WPF
 {
@@ -20,6 +21,9 @@ namespace SignalRKanban.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        private HubConnection _conn;
+        private IHubProxy _proxy;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -28,5 +32,17 @@ namespace SignalRKanban.WPF
         }
 
         public ObservableCollection<Lane> Lanes { get; set; }
+
+        private void btnCreateCard_Click(object sender, RoutedEventArgs e)
+        {
+            _proxy.Invoke("CreateCard");
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _conn = new HubConnection("http://localhost:62883");
+            _proxy = _conn.CreateHubProxy("KanbanHub");
+            _conn.Start().Wait();
+        }
     }
 }
